@@ -1,6 +1,6 @@
 ---
 title: "HW1-sec02"
-author: "Your Name Goes Here"
+author: "Esther Chen"
 output: pdf_document
 ---
 
@@ -43,6 +43,8 @@ The following R code loads packages needed in this assignment.
 library(readr)
 library(dplyr)
 library(ggplot2)
+library(purrr)
+library(tidyr)
 ```
 
 ## Problem 1: Leaf Margins
@@ -56,42 +58,71 @@ The data we will work with were extracted from that plot and are available in a 
 #### (a) Read the data into an R data frame and make a plot with the mean annual temperature on the horizontal axis and the percent of leaves in the given location that are entire margined on the vertical axis.
 
 ```{r}
-
+leaf <- read_csv(url('http://www.evanlray.com/data/misc/leaf_margins/leaf_margins.csv'))
+head(leaf)
+ggplot(leaf, aes( x = pct_entire_margined, y = mean_annual_temp_C)) + 
+  geom_point()
 ```
 
 #### (b) Fit a linear regression model to the data.  Describe the interpretation of the estimated slope.
 
 ```{r}
+fit <- lm(mean_annual_temp_C ~ pct_entire_margined, data = leaf)
 
+summary(fit)
 ```
-
+The estimated slope .309 means that for every unit of pct_entire_margined, the mean_annual_temp_C increases by .309 units.
 #### (c) Conduct a hypothesis test of the claim that there is no association between mean temperature and percent of leaves that are entire margined.  For this test, clearly state your null and alternative hypotheses in terms of model parameters.  State your conclusion in a complete sentence.  You don't need to "reject" or "fail to reject" the null hypothesis; instead, interpret what the p-value for the test means in terms of strength of evidence against the null hypothesis.  For example, a small p-value like 0.000002 indicates very strong evidence against the null hypothesis, while a large p-value like 0.2 indicates no evidence against the null hypothesis.
 
+H0: B1 = 0 There is no relationship between temperature and margined leaves.
 
+HA: B1 != 0 
+
+The p value from the summary is very small which suggest strong evidence against the null hypothesis.
 
 ### (d) Find and interpret a 95% confidence interval for the slope.
 
 ```{r}
-
+confint(fit)
 ```
+The 95% CI for the slope is [0.29, .32], and it means that there is a 95% chance that the true value of B1 is in this interval based on our sample.
 
 #### (e) State the model you have fit in matrix form.
 
+Y = XB + error
+
+Y = fitted values 
+
+X = [1 pct_entire_margined] a column of ones and a column of the recorded data
+
+Bhat = [.921 .309] the estimated parameters 
 
 
 #### (f) Extract the design matrix from your model fit and use it to find the fitted values for the regression.  Make a scatter plot showing the original data as well as the fitted values.
 
 ```{r}
+str(fit)
+x <- model.matrix(fit) #design matrix
 
+b <- matrix( c(.921, .309), nrow = 2, ncol = 1) #estimated parameter vector
+
+y <- x %*% b #fitted values 
+
+leaf2 <- leaf %>%
+            mutate(prediction = y)
+
+ggplot(leaf2, aes(x = pct_entire_margined)) +  #plot with both original and ftted values 
+  geom_point(aes(y = prediction), col = "blue") +
+  geom_point(aes(y = mean_annual_temp_C), col = "orange")
+    
 ```
 
 # Collaboration and Sources
 
 If you worked with any other students on this assignment, please list their names here.
 
-
-
 If you referred to any sources (including our text book), please list them here.  No need to get into formal citation formats, just list the name of the book(s) you used or provide a link to any online resources you used.
 
-
-
+old stats 200 homework for forgotten code 
+https://www.statmethods.net/advgraphs/layout.html
+https://r.789695.n4.nabble.com/How-do-I-obtain-the-design-matrix-of-an-lm-td836696.html 
